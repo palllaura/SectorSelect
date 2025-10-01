@@ -2,7 +2,7 @@
 SectorSelect is a simple web application for managing user submissions with business sector selection.
 
 ## Features
-- Load hierarchical sector data from an SQL file (adjacency list model)
+- Load hierarchical sector data from a json file (adjacency list model)
 - Input field for user's name
 - Multi-select box for selecting one or more sectors
 - "Agree to terms" checkbox
@@ -39,7 +39,10 @@ SectorSelect is a simple web application for managing user submissions with busi
 
 ### Database (H2)
 - H2 in-memory database starts automatically.
-- Sector data is preloaded from src/main/resources/data.sql.
+- Sector data is preloaded from src/main/resources/data/sectors.json.
+- You can access the H2 console at:
+  http://localhost:8080/h2-console
+(JDBC URL: jdbc:h2:mem:sectorsdb)
 
 ### Frontend (Vanilla JavaScript + HTML)
 - Open http://localhost:8080/index.html in a browser.

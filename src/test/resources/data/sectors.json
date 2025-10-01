@@ -1,0 +1,6 @@
+[
+  { "id": 1, "name": "Manufacturing", "parentId": null },
+  { "id": 6, "name": "Food and Beverage", "parentId": 1 },
+  { "id": 342, "name": "Bakery & confectionery products", "parentId": 6 },
+  { "id": 444, "name": "Invalid", "parentId": 2 }
+]
