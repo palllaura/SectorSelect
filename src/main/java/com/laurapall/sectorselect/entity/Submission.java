@@ -37,12 +37,6 @@ public class Submission {
     private String name;
 
     /**
-     * Agree to terms.
-     */
-    @Column(nullable = false)
-    private boolean agree;
-
-    /**
      * Sectors selected in submission.
      */
     @ManyToMany(fetch = FetchType.LAZY)
