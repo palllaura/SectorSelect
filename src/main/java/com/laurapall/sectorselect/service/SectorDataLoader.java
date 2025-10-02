@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laurapall.sectorselect.dto.SectorJson;
 import com.laurapall.sectorselect.entity.Sector;
 import com.laurapall.sectorselect.repository.SectorRepository;
+import jakarta.persistence.EntityManager;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
 
@@ -28,17 +29,20 @@ public class SectorDataLoader implements CommandLineRunner {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final Logger LOGGER = LoggerFactory.getLogger(SectorDataLoader.class);
     private final SectorRepository repository;
+    private final EntityManager entityManager;
 
     /**
      * Sector data loader constructor.
      *
      * @param repository SectorRepository.
      */
-    public SectorDataLoader(SectorRepository repository) {
+    public SectorDataLoader(SectorRepository repository, EntityManager entityManager) {
         this.repository = repository;
+        this.entityManager = entityManager;
     }
 
     @Override
+    @Transactional
     public void run(String... args) throws Exception {
         loadIfEmpty();
     }
@@ -79,6 +83,7 @@ public class SectorDataLoader implements CommandLineRunner {
                         LOGGER.warn("Parent id {} not found for child {}", sectorJson.getParentId(), sectorJson.getId());
                     } else {
                         child.setParent(parent);
+                        parent.getChildren().add(child);
                     }
                 }
             }
@@ -93,8 +98,10 @@ public class SectorDataLoader implements CommandLineRunner {
                 sector.setLevel(lvl);
             }
 
-            repository.saveAll(sectorMap.values());
-
+            for (Sector sector : sectorMap.values()) {
+                entityManager.persist(sector);
+            }
+            entityManager.flush();
             LOGGER.info("Loaded {} sectors from JSON.", sectorMap.size());
         }
     }

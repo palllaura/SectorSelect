@@ -3,6 +3,7 @@ package com.laurapall.sectorselect;
 import com.laurapall.sectorselect.entity.Sector;
 import com.laurapall.sectorselect.repository.SectorRepository;
 import com.laurapall.sectorselect.service.SectorDataLoader;
+import jakarta.persistence.EntityManager;
 import nl.altindag.log.LogCaptor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,7 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -26,6 +27,9 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SectorDataLoaderTests {
+
+	@Mock
+	private EntityManager entityManager;
 
 	@Mock
 	private SectorRepository repository;
@@ -45,7 +49,7 @@ class SectorDataLoaderTests {
 		when(repository.count()).thenReturn(5L);
 
 		dataLoader.loadIfEmpty();
-		verify(repository, never()).saveAll(any());
+		verify(entityManager, never()).persist(any());
 	}
 
 	@Test
@@ -60,37 +64,40 @@ class SectorDataLoaderTests {
 		);
 	}
 
+
 	@Test
-	void testDataLoaderTriggersSaveAllInRepositoryWhenEmpty() throws IOException {
+	void testDataLoaderPersistsEntitiesWhenEmpty() throws IOException {
 		when(repository.count()).thenReturn(0L);
 		dataLoader.loadIfEmpty();
-		verify(repository, times(1)).saveAll(any());
+		verify(entityManager, times(4)).persist(any(Sector.class));
 	}
 
 	@Test
 	void testDataLoaderAddsCorrectNumberOfSectors() throws IOException {
 		when(repository.count()).thenReturn(0L);
+
 		dataLoader.loadIfEmpty();
 
-		ArgumentCaptor<Collection<Sector>> captor = ArgumentCaptor.forClass(Collection.class);
-		verify(repository, times(1)).saveAll(captor.capture());
+		ArgumentCaptor<Sector> captor = ArgumentCaptor.forClass(Sector.class);
+		verify(entityManager, times(4)).persist(captor.capture());
 
-		Collection<Sector> saved = captor.getValue();
+		List<Sector> persisted = captor.getAllValues();
 
-		Assertions.assertNotNull(saved);
-		Assertions.assertEquals(4, saved.size());
+		Assertions.assertNotNull(persisted);
+		Assertions.assertEquals(4, persisted.size());
 	}
 
 	@Test
 	void testDataLoaderAddedSectorsHaveCorrectLevels() throws IOException {
 		when(repository.count()).thenReturn(0L);
+
 		dataLoader.loadIfEmpty();
 
-		ArgumentCaptor<Collection<Sector>> captor = ArgumentCaptor.forClass(Collection.class);
-		verify(repository, times(1)).saveAll(captor.capture());
+		ArgumentCaptor<Sector> captor = ArgumentCaptor.forClass(Sector.class);
+		verify(entityManager, times(4)).persist(captor.capture());
+		List<Sector> persisted = captor.getAllValues();
 
-		Collection<Sector> saved = captor.getValue();
-		Map<Long, Sector> map = saved.stream().collect(Collectors.toMap(Sector::getId, s -> s));
+		Map<Long, Sector> map = persisted.stream().collect(Collectors.toMap(Sector::getId, s -> s));
 
 		Assertions.assertEquals(0, map.get(1L).getLevel());
 		Assertions.assertEquals(1, map.get(6L).getLevel());
