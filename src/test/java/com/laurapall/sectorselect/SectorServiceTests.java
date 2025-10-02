@@ -5,7 +5,6 @@ import com.laurapall.sectorselect.entity.Sector;
 import com.laurapall.sectorselect.repository.SectorRepository;
 import com.laurapall.sectorselect.service.SectorService;
 import nl.altindag.log.LogCaptor;
-import org.apache.catalina.core.ApplicationSessionCookieConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
