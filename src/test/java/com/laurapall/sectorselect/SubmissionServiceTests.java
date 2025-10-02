@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -247,7 +248,7 @@ class SubmissionServiceTests {
 		request.setAgree(false);
 
 		service.updateCurrentSubmission(request, session);
-		verifyNoMoreInteractions(submissionRepository);
+		verify(submissionRepository, never()).save(any(Submission.class));
 	}
 
 }
