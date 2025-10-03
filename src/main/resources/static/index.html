@@ -37,7 +37,29 @@
 </form>
 
 <script>
+    (async () => {
+        const res = await fetch('/api/sectors/tree');
+        const data = await res.json();
 
+        const select = document.getElementById('sectorSelect');
+
+        function addOptions(sectors) {
+            sectors.forEach(sector => {
+                const option = document.createElement('option');
+                option.value = sector.id;
+                const indent = '\u00A0'.repeat(sector.level * 4);
+                option.textContent = indent + sector.name;
+                select.appendChild(option);
+
+                if (sector.children && sector.children.length > 0) {
+                    addOptions(sector.children);
+                }
+            });
+        }
+
+        addOptions(data);
+    })();
 </script>
+
 </body>
 </html>
