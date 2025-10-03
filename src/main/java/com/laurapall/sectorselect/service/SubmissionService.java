@@ -11,8 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.servlet.http.HttpSession;
-
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -22,8 +20,6 @@ import java.util.Optional;
  */
 @Service
 public class SubmissionService {
-
-    private static final String SESSION_KEY = "submissionId";
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionService.class);
 
     private final SubmissionRepository submissionRepository;
@@ -42,11 +38,10 @@ public class SubmissionService {
     /**
      * Create and save new submission if request is valid.
      * @param request submission request.
-     * @param session Http session.
      * @return submission response.
      */
     @Transactional
-    public SubmissionResponse createSubmission(SubmissionRequest request, HttpSession session) {
+    public SubmissionResponse createSubmission(SubmissionRequest request) {
         if (!validateRequest(request)) return invalidResponse();
 
         List<Long> ids = request.getSectorIds();
@@ -57,8 +52,6 @@ public class SubmissionService {
         submission.setSectors(new LinkedHashSet<>(sectors));
         submissionRepository.save(submission);
 
-        session.setAttribute(SESSION_KEY, submission.getId());
-
         LOGGER.info("Successfully created submission with id: {}", submission.getId());
         return toResponse(submission);
     }
@@ -66,15 +59,13 @@ public class SubmissionService {
     /**
      * Update current submission if request is valid.
      * @param request submission request.
-     * @param session Http session.
      * @return submission response.
      */
     @Transactional
-    public SubmissionResponse updateCurrentSubmission(SubmissionRequest request, HttpSession session) {
-        Long id = (Long) session.getAttribute(SESSION_KEY);
+    public SubmissionResponse updateCurrentSubmission(SubmissionRequest request) {
         Optional<Submission> submissionOptional = Optional.empty();
-        if (id != null) {
-            submissionOptional = submissionRepository.findById(id);
+        if (request.getEditSubmissionId() != null) {
+            submissionOptional = submissionRepository.findById(request.getEditSubmissionId());
         }
         if (submissionOptional.isEmpty() || !validateRequest(request)) return invalidResponse();
 

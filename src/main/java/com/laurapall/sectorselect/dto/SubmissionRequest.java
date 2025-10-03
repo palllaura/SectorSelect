@@ -19,4 +19,6 @@ public class SubmissionRequest {
 
     @NotNull
     private Boolean agree;
+
+    private Long editSubmissionId;
 }

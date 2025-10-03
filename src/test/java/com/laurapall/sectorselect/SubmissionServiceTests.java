@@ -16,7 +16,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mock.web.MockHttpSession;
 
 import java.util.HashSet;
 import java.util.List;
@@ -42,13 +41,9 @@ class SubmissionServiceTests {
 
 	private LogCaptor logCaptor;
 
-	private MockHttpSession session;
-
 	@BeforeEach
 	void setUp() {
 		logCaptor = LogCaptor.forClass(SubmissionService.class);
-		session = new MockHttpSession();
-		session.setAttribute("submissionId", 123L);
 	}
 
 	/**
@@ -60,6 +55,19 @@ class SubmissionServiceTests {
 		request.setName("Client Name");
 		request.setSectorIds(List.of(1L, 2L, 3L));
 		request.setAgree(true);
+		return request;
+	}
+
+	/**
+	 * Helper method to create a valid submission update request.
+	 * @return request.
+	 */
+	SubmissionRequest createValidSubmissionUpdateRequest() {
+		SubmissionRequest request = new SubmissionRequest();
+		request.setName("Client Name");
+		request.setSectorIds(List.of(1L, 2L, 3L));
+		request.setAgree(true);
+		request.setEditSubmissionId(123L);
 		return request;
 	}
 
@@ -94,7 +102,7 @@ class SubmissionServiceTests {
 	@Test
 	void testCreateSubmissionCorrectReturnsValidResponse() {
 		when(sectorRepository.findAllById(any())).thenReturn(getListOfSectors());
-		SubmissionResponse result = service.createSubmission(createValidSubmissionRequest(), session);
+		SubmissionResponse result = service.createSubmission(createValidSubmissionRequest());
 		Assertions.assertTrue(result.isValid());
 	}
 
@@ -103,7 +111,7 @@ class SubmissionServiceTests {
 		List<Sector> sectors = getListOfSectors();
 		when(sectorRepository.findAllById(any())).thenReturn(sectors);
 
-		service.createSubmission(createValidSubmissionRequest(), session);
+		service.createSubmission(createValidSubmissionRequest());
 		verify(submissionRepository, times(1)).save(any(Submission.class));
 	}
 
@@ -111,7 +119,7 @@ class SubmissionServiceTests {
 	void testCreateSubmissionCorrectCorrectDataSaved() {
 		List<Sector> sectors = getListOfSectors();
 		when(sectorRepository.findAllById(any())).thenReturn(sectors);
-		service.createSubmission(createValidSubmissionRequest(), session);
+		service.createSubmission(createValidSubmissionRequest());
 
 		ArgumentCaptor<Submission> captor = ArgumentCaptor.forClass(Submission.class);
 		verify(submissionRepository, times(1)).save(captor.capture());
@@ -127,7 +135,7 @@ class SubmissionServiceTests {
 		SubmissionRequest request = createValidSubmissionRequest();
 		request.setName(null);
 
-		SubmissionResponse result = service.createSubmission(request, session);
+		SubmissionResponse result = service.createSubmission(request);
 		Assertions.assertFalse(result.isValid());
 
 		Assertions.assertTrue(
@@ -141,7 +149,7 @@ class SubmissionServiceTests {
 		SubmissionRequest request = createValidSubmissionRequest();
 		request.setName("      ");
 
-		SubmissionResponse result = service.createSubmission(request, session);
+		SubmissionResponse result = service.createSubmission(request);
 		Assertions.assertFalse(result.isValid());
 
 		Assertions.assertTrue(
@@ -155,7 +163,7 @@ class SubmissionServiceTests {
 		SubmissionRequest request = createValidSubmissionRequest();
 		request.setSectorIds(null);
 
-		SubmissionResponse result = service.createSubmission(request, session);
+		SubmissionResponse result = service.createSubmission(request);
 		Assertions.assertFalse(result.isValid());
 
 		Assertions.assertTrue(
@@ -169,7 +177,7 @@ class SubmissionServiceTests {
 		SubmissionRequest request = createValidSubmissionRequest();
 		request.setSectorIds(List.of());
 
-		SubmissionResponse result = service.createSubmission(request, session);
+		SubmissionResponse result = service.createSubmission(request);
 		Assertions.assertFalse(result.isValid());
 
 		Assertions.assertTrue(
@@ -183,7 +191,7 @@ class SubmissionServiceTests {
 		SubmissionRequest request = createValidSubmissionRequest();
 		request.setAgree(false);
 
-		SubmissionResponse result = service.createSubmission(request, session);
+		SubmissionResponse result = service.createSubmission(request);
 		Assertions.assertFalse(result.isValid());
 
 		Assertions.assertTrue(
@@ -198,7 +206,7 @@ class SubmissionServiceTests {
 		when(submissionRepository.findById(123L)).thenReturn(Optional.of(submission));
 		when(sectorRepository.findAllById(any())).thenReturn(getListOfSectors());
 
-		SubmissionResponse result = service.updateCurrentSubmission(createValidSubmissionRequest(), session);
+		SubmissionResponse result = service.updateCurrentSubmission(createValidSubmissionUpdateRequest());
 		Assertions.assertTrue(result.isValid());
 	}
 
@@ -208,7 +216,7 @@ class SubmissionServiceTests {
 		when(submissionRepository.findById(123L)).thenReturn(Optional.of(submission));
 		when(sectorRepository.findAllById(any())).thenReturn(getListOfSectors());
 
-		service.updateCurrentSubmission(createValidSubmissionRequest(), session);
+		service.updateCurrentSubmission(createValidSubmissionUpdateRequest());
 		verify(submissionRepository, times(1)).save(any(Submission.class));
 	}
 
@@ -219,7 +227,7 @@ class SubmissionServiceTests {
 		when(submissionRepository.findById(123L)).thenReturn(Optional.of(submission));
 		when(sectorRepository.findAllById(any())).thenReturn(sectors);
 
-		service.updateCurrentSubmission(createValidSubmissionRequest(), session);
+		service.updateCurrentSubmission(createValidSubmissionUpdateRequest());
 
 		ArgumentCaptor<Submission> captor = ArgumentCaptor.forClass(Submission.class);
 		verify(submissionRepository, times(1)).save(captor.capture());
@@ -234,7 +242,7 @@ class SubmissionServiceTests {
 	void testUpdateCurrentSubmissionInvalidResponseWhenIncorrectSession() {
 		when(submissionRepository.findById(123L)).thenReturn(Optional.empty());
 
-		SubmissionResponse result = service.updateCurrentSubmission(createValidSubmissionRequest(), session);
+		SubmissionResponse result = service.updateCurrentSubmission(createValidSubmissionUpdateRequest());
 		Assertions.assertFalse(result.isValid());
 	}
 
@@ -243,10 +251,10 @@ class SubmissionServiceTests {
 		Submission submission = new Submission();
 		when(submissionRepository.findById(123L)).thenReturn(Optional.of(submission));
 
-		SubmissionRequest request = createValidSubmissionRequest();
+		SubmissionRequest request = createValidSubmissionUpdateRequest();
 		request.setAgree(false);
 
-		service.updateCurrentSubmission(request, session);
+		service.updateCurrentSubmission(request);
 		verify(submissionRepository, never()).save(any(Submission.class));
 	}
 
