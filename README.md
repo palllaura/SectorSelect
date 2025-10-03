@@ -46,3 +46,6 @@ SectorSelect is a simple web application for managing user submissions with busi
 
 ### Frontend (Vanilla JavaScript + HTML)
 - Open http://localhost:8080/index.html in a browser.
+
+  
+<img width="979" height="695" alt="Screenshot 2025-10-03 at 15 17 16" src="https://github.com/user-attachments/assets/dddb19e2-3d8a-4500-b927-3feae43d206d" />
