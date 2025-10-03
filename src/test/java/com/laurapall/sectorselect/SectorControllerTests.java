@@ -1,5 +1,6 @@
 package com.laurapall.sectorselect;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laurapall.sectorselect.controller.SectorController;
 
 import com.laurapall.sectorselect.dto.SectorTreeDto;
@@ -41,5 +42,65 @@ class SectorControllerTests {
         Assertions.assertEquals(expected, result);
     }
 
+    @Test
+    void testGetSectorTreeReturnsCorrectJson() throws Exception {
+        SectorTreeDto child = new SectorTreeDto(5L, "Printing", 1);
+        SectorTreeDto child2 = new SectorTreeDto(6L, "Food and Beverage", 1);
+        child2.getChildren().add(new SectorTreeDto(342L, "Bakery & confectionery products", 2));
+
+        SectorTreeDto root1 = new SectorTreeDto(1L, "Manufacturing", 0);
+        root1.getChildren().add(child);
+        root1.getChildren().add(child2);
+
+        SectorTreeDto root2 = new SectorTreeDto(2L, "Service", 0);
+
+        List<SectorTreeDto> expected = List.of(root1, root2);
+
+        when(service.getSectorTree()).thenReturn(expected);
+
+        List<SectorTreeDto> result = controller.getSectorTree();
+
+        ObjectMapper mapper = new ObjectMapper();
+        String resultJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
+
+        String expectedJson = """
+                [
+                  {
+                    "id": 1,
+                    "name": "Manufacturing",
+                    "level": 0,
+                    "children": [
+                      {
+                        "id": 5,
+                        "name": "Printing",
+                        "level": 1,
+                        "children": []
+                      },
+                      {
+                        "id": 6,
+                        "name": "Food and Beverage",
+                        "level": 1,
+                        "children": [
+                          {
+                            "id": 342,
+                            "name": "Bakery & confectionery products",
+                            "level": 2,
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": 2,
+                    "name": "Service",
+                    "level": 0,
+                    "children": []
+                  }
+                ]
+                """;
+
+        Assertions.assertEquals(mapper.readTree(expectedJson), mapper.readTree(resultJson));
+    }
 
 }
